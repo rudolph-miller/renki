@@ -1,4 +1,5 @@
 # Renki - Regexp Engine.
+[![Build Status](https://travis-ci.org/Rudolph-Miller/renki.svg?branch=master)](https://travis-ci.org/Rudolph-Miller/renki)
 
 ## Usage
 
