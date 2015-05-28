@@ -4,9 +4,9 @@
         :renki.parser
         :renki.compiler
         :renki.vm)
-  (:export :match))
+  (:export :test))
 (in-package :renki)
 
-(defun match (regex string)
+(defun test (regex string)
   (run (compile-to-bytecode (parse-string regex))
        string))

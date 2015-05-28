@@ -1,0 +1,19 @@
+language: common-lisp
+sudo: yes
+
+env:
+  matrix:
+    - LISP=sbcl COVERALLS=true
+    - LISP=ccl
+
+install:
+  # Install cl-travis.
+  - curl https://raw.githubusercontent.com/luismbo/cl-travis/master/install.sh | bash
+
+before_script:
+  - git clone https://github.com/fukamachi/cl-coveralls ~/lisp/cl-coveralls
+
+script:
+  - cl -l prove
+       -e '(or (prove:run :renki-test)
+               (uiop:quit -1))'
