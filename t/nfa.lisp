@@ -55,11 +55,14 @@
         "can set char.")))
 
 (subtest "expand-epsilon"
-  (let ((nfa (compile-to-nfa (parse-string "a|b"))))
-    (is (- (length (nfa-transitions nfa))
-           (length (nfa-transitions (expand-epsilon nfa))))
-        2
-        "can remove expand-epsilon.")))
+  (flet ((count-epsilon (nfa)
+           (length (remove-if #'(lambda (transition)
+                                  (transition-char transition))
+                              (nfa-transitions nfa)))))
+    (let ((nfa (compile-to-nfa (parse-string "a|b"))))
+      (is (- (count-epsilon nfa) (count-epsilon (expand-epsilon nfa)))
+          2
+          "can remove expand-epsilon."))))
 
 (subtest "run-nfa"
   (ok (run-nfa (compile-to-nfa (parse-string "a")) "a")
