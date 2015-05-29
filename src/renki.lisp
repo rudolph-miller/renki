@@ -27,7 +27,7 @@
 
 (defgeneric test-nfa (regex string)
   (:method ((regex string) string)
-    (test-nfa (remove-epsilon-expansion (compile-to-nfa (parse-string regex)))
+    (test-nfa (expand-epsilon (compile-to-nfa (parse-string regex)))
               string))
 
   (:method ((regex <nfa>) string)

@@ -13,7 +13,7 @@
            :make-nfa
            :make-state
            :make-transition
-           :remove-epsilon-expansion
+           :expand-epsilon
            :run-nfa))
 (in-package :renki.nfa)
 
@@ -45,30 +45,28 @@
 (defun make-transition (from to &optional char)
   (make-instance '<transition> :from from :to to :char char))
 
-(defun remove-epsilon-expansion (nfa)
-  (let ((initial (nfa-initial nfa))
-        (accepting (nfa-accepting nfa))
-        (transitions (nfa-transitions nfa))
-        (result nil))
-    (labels ((sub (state &optional replace)
-               (dolist (transition transitions)
-                 (when (eql state (transition-from transition))
-                   (cond
-                     ((eql replace (transition-to transition))
-                      (push (make-transition replace replace (transition-char transition)) result))
-                     ((transition-char transition)
-                      (unless (eql (transition-to transition) accepting)
-                        (sub (transition-to transition) nil))
-                      (if replace
-                          (push (make-transition replace (transition-to transition) (transition-char transition)) result)
-                          (push transition result)))
-                     (t (if (eql (transition-to transition) accepting)
-                            (if replace
-                                (push (make-transition replace (transition-to transition) (transition-char transition)) result)
-                                (push transition result))
-                            (sub (transition-to transition) (or replace state)))))))))
-      (sub (nfa-initial nfa))
-      (make-nfa initial accepting result))))
+(defun expand-epsilon (nfa)
+  (let* ((initial (nfa-initial nfa))
+         (accepting (nfa-accepting nfa))
+         (transitions (nfa-transitions nfa))
+         (epsilons (remove-if #'(lambda (transition)
+                                  (transition-char transition))
+                              transitions))
+         (result nil))
+    (labels ((find-epsilon (state)
+               (let ((result (find state epsilons :test #'(lambda (state transition) (eql state (transition-from transition))))))
+                 (when result
+                   (setf epsilons (remove result epsilons))
+                   (let ((next (find-epsilon (transition-to result))))
+                     (if next next result))))))
+      (dolist (transition transitions)
+        (when (transition-char transition)
+          (push transition result)
+          (let ((found (find-epsilon (transition-to transition))))
+            (when found
+              (push (make-transition (transition-from transition) (transition-to found) (transition-char transition))
+                    result)))))
+      (make-nfa initial accepting (append epsilons result)))))
 
 (defun run-nfa (nfa string)
   (let ((accepting (nfa-accepting nfa))
