@@ -5,9 +5,7 @@
         :renki.parser
         :renki.vm
         :renki.compiler
-        :prove)
-  (:shadowing-import-from :renki.vm
-                          :run))
+        :prove))
 (in-package :renki-test.compiler)
 
 (plan nil)

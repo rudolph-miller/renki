@@ -29,7 +29,7 @@
            :make-thread
            :exec
            :with-target-string
-           :run))
+           :run-vm))
 (in-package :renki.vm)
 
 (defparameter *current-line* 0)
@@ -139,7 +139,7 @@
          (*target-length* (length ,string)))
      ,@body))
 
-(defun run (insts string)
+(defun run-vm (insts string)
   (macrolet ((next-thread ()
                `(let ((thread (pop *queue*)))
                   (setq *pc* (thread-pc thread))
@@ -155,10 +155,10 @@
         (tagbody
          exec
            (case (exec (current-inst))
-             (:match (return-from run t))
+             (:match (return-from run-vm t))
              (:fail
               (if (null *queue*)
-                  (return-from run nil)
+                  (return-from run-vm nil)
                   (next-thread)))
              (:splitted (next-thread))
              (t (go exec))))))))

@@ -18,7 +18,7 @@
           string))
 
   (:method ((regex list) string)
-    (run regex string))
+    (run-vm regex string))
 
   (:method ((regex array) string)
-    (run regex string)))
+    (run-vm regex string)))

@@ -2,9 +2,7 @@
 (defpackage renki-test.vm
   (:use :cl
         :renki.vm
-        :prove)
-  (:shadowing-import-from :renki.vm
-                          :run))
+        :prove))
 (in-package :renki-test.vm)
 
 (plan nil)
@@ -148,20 +146,20 @@
           "can save to2 and *sp*."
           :test #'equalp))))
 
-(subtest "run"
+(subtest "run-vm"
   (subtest ":match"
-    (ok (run (list (make-match-inst)) "")
+    (ok (run-vm (list (make-match-inst)) "")
         "can return T."))
 
   (subtest ":fail"
-    (is (run (list (make-char-inst #\b) (make-char-inst #\a)) "a")
+    (is (run-vm (list (make-char-inst #\b) (make-char-inst #\a)) "a")
         nil
         "can return NIL when *queue* is empty.")
 
     (let ((split (make-split-inst)))
       (setf (inst-to1 split) 1)
       (setf (inst-to2 split) 2)
-      (is (run (list split (make-char-inst #\b) (make-char-inst #\a) (make-match-inst)) "a")
+      (is (run-vm (list split (make-char-inst #\b) (make-char-inst #\a) (make-match-inst)) "a")
           t
           "can continue when *queue* is not empty.")))
 
@@ -172,11 +170,11 @@
           (split (make-split-inst)))
       (setf (inst-to1 split) 1)
       (setf (inst-to2 split) 2)
-      (ok (run (list split (make-char-inst #\a) (make-jmp-inst 4) (make-char-inst #\b) (make-match-inst)) "a")
+      (ok (run-vm (list split (make-char-inst #\a) (make-jmp-inst 4) (make-char-inst #\b) (make-match-inst)) "a")
           "can exec the first thread.")))
 
   (subtest "t"
-    (ok (run (list (make-char-inst #\a) (make-match-inst)) "a")
+    (ok (run-vm (list (make-char-inst #\a) (make-match-inst)) "a")
         "can continue.")))
 
 (finalize)

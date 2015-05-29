@@ -3,9 +3,7 @@
   (:use :cl
         :renki
         :renki.vm
-        :prove)
-  (:shadowing-import-from :renki.vm
-                          :run))
+        :prove))
 (in-package :renki-test)
 
 (plan nil)
