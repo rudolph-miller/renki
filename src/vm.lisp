@@ -29,6 +29,7 @@
            :current-inst
            :make-thread
            :exec
+           :with-target-string
            :run))
 (in-package :renki.vm)
 
@@ -137,25 +138,29 @@
     (push thread1 *queue*)
     :splitted))
 
+(defmacro with-target-string (string &body body)
+  `(let ((*target* ,string)
+         (*target-length* (length ,string)))
+     ,@body))
+
 (defun run (insts string)
   (macrolet ((next-thread ()
                `(let ((thread (pop *queue*)))
                   (setq *pc* (thread-pc thread))
                   (setq *sp* (thread-sp thread))
                   (go exec))))
-    (let ((*pc* 0)
-          (*sp* 0)
-          (*insts* (inst-list-array insts))
-          (*target* string)
-          (*queue* nil)
-          (*target-length* (length string)))
-      (tagbody
-       exec
-         (case (exec (current-inst))
-           (:match (return-from run t))
-           (:fail
-            (if (null *queue*)
-                (return-from run nil)
-                (next-thread)))
-           (:splitted (next-thread))
-           (t (go exec)))))))
+    (with-target-string string
+      (let ((*pc* 0)
+            (*sp* 0)
+            (*insts* (inst-list-array insts))
+            (*queue* nil))
+        (tagbody
+         exec
+           (case (exec (current-inst))
+             (:match (return-from run t))
+             (:fail
+              (if (null *queue*)
+                  (return-from run nil)
+                  (next-thread)))
+             (:splitted (next-thread))
+             (t (go exec))))))))

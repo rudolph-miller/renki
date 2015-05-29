@@ -75,11 +75,11 @@
            "can convert list to array."))
 
 (subtest "curret-char"
-  (let ((*target* "a")
-        (*sp* 0))
-    (is (current-char)
-        #\a
-        "can return the character *sp* indicates.")))
+  (with-target-string "a"
+    (let ((*sp* 0))
+      (is (current-char)
+          #\a
+          "can return the character *sp* indicates."))))
 
 (subtest "curret-inst"
   (let ((*insts* (inst-list-array (list (make-empty-inst))))
@@ -103,25 +103,24 @@
         "can returt :match."))
 
   (subtest "<char>"
-    (let ((*pc* 0)
-          (*sp* 0)
-          (*target* "ab")
-          (*target-length* 2)
-          (*queue* nil))
-      (ok (exec (make-char-inst #\a))
-          "can returt T when matching succeeded.")
+    (with-target-string "ab"
+      (let ((*pc* 0)
+            (*sp* 0)
+            (*queue* nil))
+        (ok (exec (make-char-inst #\a))
+            "can returt T when matching succeeded.")
 
-      (is *sp*
-          1
-          "can increment *sp*.")
+        (is *sp*
+            1
+            "can increment *sp*.")
 
-      (is *pc*
-          1
-          "can increment *pc*.")
+        (is *pc*
+            1
+            "can increment *pc*.")
 
-      (is (exec (make-char-inst #\a))
-          :fail
-          "can return :fail when matching failed.")))
+        (is (exec (make-char-inst #\a))
+            :fail
+            "can return :fail when matching failed."))))
 
   (subtest "<jmp>"
     (let ((*pc* 0))
