@@ -4,9 +4,21 @@
         :renki.parser
         :renki.compiler
         :renki.vm)
-  (:export :test))
+  (:export :create-scanner
+           :test))
 (in-package :renki)
 
-(defun test (regex string)
-  (run (compile-to-bytecode (parse-string regex))
-       string))
+(defun create-scanner (regex)
+  (let ((insts (compile-to-bytecode (parse-string regex))))
+    (make-array (length insts) :initial-contents insts)))
+
+(defgeneric test (regex string)
+  (:method ((regex string) string)
+    (test (compile-to-bytecode (parse-string regex))
+          string))
+
+  (:method ((regex list) string)
+    (run regex string))
+
+  (:method ((regex array) string)
+    (run regex string)))

@@ -24,7 +24,6 @@
            :*target*
            :*target-length*
            :*queue*
-           :inst-list-array
            :current-char
            :current-inst
            :make-thread
@@ -94,9 +93,6 @@
 
 (defparameter *queue* nil)
 
-(defun inst-list-array (list)
-  (make-array (length list) :initial-contents list))
-
 (defun current-char ()
   (elt *target* *sp*))
 
@@ -152,7 +148,9 @@
     (with-target-string string
       (let ((*pc* 0)
             (*sp* 0)
-            (*insts* (inst-list-array insts))
+            (*insts* (etypecase insts
+                       (list (make-array (length insts) :initial-contents insts))
+                       (array insts)))
             (*queue* nil))
         (tagbody
          exec

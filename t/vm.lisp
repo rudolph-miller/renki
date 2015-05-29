@@ -69,11 +69,6 @@
         1
         "can increment *current-line*.")))
 
-(subtest "inst-list-array"
-  (is-type (inst-list-array (list (make-empty-inst) (make-empty-inst)))
-           'array
-           "can convert list to array."))
-
 (subtest "curret-char"
   (with-target-string "a"
     (let ((*sp* 0))
@@ -82,7 +77,7 @@
           "can return the character *sp* indicates."))))
 
 (subtest "curret-inst"
-  (let ((*insts* (inst-list-array (list (make-empty-inst))))
+  (let ((*insts* (make-array 1 :initial-contents (list (make-empty-inst))))
         (*pc* 0))
     (is-type (current-inst)
              '<empty>

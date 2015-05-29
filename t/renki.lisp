@@ -2,12 +2,32 @@
 (defpackage renki-test
   (:use :cl
         :renki
-        :prove))
+        :renki.vm
+        :prove)
+  (:shadowing-import-from :renki.vm
+                          :run))
 (in-package :renki-test)
 
 (plan nil)
 
+(subtest "create-scanner"
+  (let ((scanner (create-scanner "a|b")))
+    (is-type scanner
+             'array
+             "can return an array.")
+
+    (is-type (elt scanner 0)
+             '<inst>
+             "can return <inst> in array.")))
+
 (subtest "test"
+  (subtest ":method"
+    (ok (test "a" "a")
+        "with string.")
+
+    (ok (test (create-scanner "a") "a")
+        "with array."))
+
   (subtest "character"
     (ok (test "a" "a")
         "T.")
