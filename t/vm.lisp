@@ -145,12 +145,14 @@
           "can push 2 threads.")
 
       (is (car *queue*)
-          (cons 2 0)
-          "can save to1 and *sp*.")
+          (make-thread :pc 2 :sp 0)
+          "can save to1 and *sp*."
+          :test #'equalp)
 
       (is (cadr *queue*)
-          (cons 3 0)
-          "can save to2 and *sp*."))))
+          (make-thread :pc 3 :sp 0)
+          "can save to2 and *sp*."
+          :test #'equalp))))
 
 (subtest "run"
   (subtest ":match"

@@ -27,6 +27,7 @@
            :inst-list-array
            :current-char
            :current-inst
+           :make-thread
            :exec
            :run))
 (in-package :renki.vm)
@@ -101,6 +102,10 @@
 (defun current-inst ()
   (elt *insts* *pc*))
 
+(defstruct thread
+  (pc 0 :type integer)
+  (sp 0 :type integer))
+
 (defgeneric exec (obj))
 
 (defmethod exec ((obj <empty>))
@@ -126,8 +131,8 @@
   t)
 
 (defmethod exec ((obj <split>))
-  (let ((thread1 (cons (inst-to1 obj) *sp*))
-        (thread2 (cons (inst-to2 obj) *sp*)))
+  (let ((thread1 (make-thread :pc (inst-to1 obj) :sp *sp*))
+        (thread2 (make-thread :pc (inst-to2 obj) :sp *sp*)))
     (push thread2 *queue*)
     (push thread1 *queue*)
     :splitted))
@@ -135,8 +140,8 @@
 (defun run (insts string)
   (macrolet ((next-thread ()
                `(let ((thread (pop *queue*)))
-                  (setq *pc* (car thread))
-                  (setq *sp* (cdr thread))
+                  (setq *pc* (thread-pc thread))
+                  (setq *sp* (thread-sp thread))
                   (go exec))))
     (let ((*pc* 0)
           (*sp* 0)
