@@ -51,7 +51,7 @@
 
       (subtest "kleene"
         (ok (test "ba*" "b")
-            "T with Ypsilon.")
+            "T with Epsilon.")
         
         (ok (test "a*" "aaa")
             "T with repetition."))
