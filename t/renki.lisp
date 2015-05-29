@@ -16,7 +16,10 @@
 
     (is-type (elt scanner 0)
              '<inst>
-             "can return <inst> in array.")))
+             "can return <inst>s in array.")
+
+    (ok (test-vm scanner "b")
+        "scanner can be used for test-vm.")))
 
 (macrolet ((with-test (fn &body body)
              `(flet ((test (regex string)
