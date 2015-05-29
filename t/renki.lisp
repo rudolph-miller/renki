@@ -40,9 +40,11 @@
         "T with repetition."))
 
   (subtest "group"
-    (ok (test "c(a|b)*c" "caabc")
-        "T.")
+    (ok (test "ab|cd" "ab")
+        "without grouping.")
 
-    (skip 1 "have to test without grouping.")))
+    (is (test "a(b|c)d" "ab")
+        nil
+        "with grouping.")))
 
 (finalize)
