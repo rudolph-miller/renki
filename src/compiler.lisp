@@ -2,8 +2,10 @@
 (defpackage renki.compiler
   (:use :cl
         :renki.ast
-        :renki.vm)
-  (:export :compile-to-bytecode))
+        :renki.vm
+        :renki.nfa)
+  (:export :compile-to-bytecode
+           :compile-to-nfa))
 (in-package :renki.compiler)
 
 (defparameter *line-inited* nil)
@@ -53,3 +55,51 @@
 
 (defmethod compile-to-bytecode ((obj <group>))
   (compile-to-bytecode (reg-operand obj)))
+
+(defgeneric compile-to-nfa (obj))
+
+(defmethod compile-to-nfa ((obj <symbol>))
+  (let* ((initial (make-state))
+         (accepting (make-state))
+         (transition (make-transition initial accepting (reg-char obj))))
+    (make-nfa initial accepting (list transition))))
+
+(defmethod compile-to-nfa ((obj <sequence>))
+  (let* ((lh (compile-to-nfa (reg-lh obj)))
+         (rh (compile-to-nfa (reg-rh obj)))
+         (initial (nfa-initial lh))
+         (accepting (nfa-accepting rh))
+         (connecting-transition (make-transition (nfa-accepting lh) (nfa-initial rh)))
+         (transitions (append (nfa-transitions lh)
+                              (nfa-transitions rh)
+                              (list connecting-transition))))
+    (make-nfa initial accepting transitions)))
+
+(defmethod compile-to-nfa ((obj <alternative>))
+  (let* ((lh (compile-to-nfa (reg-lh obj)))
+         (rh (compile-to-nfa (reg-rh obj)))
+         (initial (make-state))
+         (accepting (make-state))
+         (connecting-transitions (list (make-transition initial (nfa-initial lh))
+                                       (make-transition initial (nfa-initial rh))
+                                       (make-transition (nfa-accepting lh) accepting)
+                                       (make-transition (nfa-accepting rh) accepting)))
+         (transitions (append (nfa-transitions lh)
+                              (nfa-transitions rh)
+                              connecting-transitions)))
+    (make-nfa initial accepting transitions)))
+
+(defmethod compile-to-nfa ((obj <kleene>))
+  (let* ((operand (compile-to-nfa (reg-operand obj)))
+         (initial (make-state))
+         (accepting (make-state))
+         (connecting-transitions (list (make-transition initial accepting)
+                                       (make-transition (nfa-accepting operand) (nfa-initial operand))
+                                       (make-transition initial (nfa-initial operand))
+                                       (make-transition (nfa-accepting operand) accepting)))
+         (transitions (append (nfa-transitions operand)
+                              connecting-transitions)))
+    (make-nfa initial accepting transitions)))
+
+(defmethod compile-to-nfa ((obj <group>))
+  (compile-to-nfa (reg-operand obj)))

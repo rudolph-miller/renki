@@ -18,6 +18,7 @@
                 ((:test-file "ast")
                  (:test-file "parser")
                  (:test-file "vm")
+                 (:test-file "nfa")
                  (:test-file "compiler")
                  (:test-file "renki"))))
 

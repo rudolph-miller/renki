@@ -18,51 +18,50 @@
              '<inst>
              "can return <inst> in array.")))
 
-(subtest "test"
-  (subtest ":method"
-    (ok (test "a" "a")
-        "with string.")
+(macrolet ((with-test (fn &body body)
+             `(flet ((test (regex string)
+                       (funcall (symbol-function ,fn) regex string)))
+                (subtest (format nil "~a" ,fn)
+                  ,@body))))
+  (dolist (test (list 'test-vm 'test-nfa))
+    (with-test test
+      (subtest "character"
+        (ok (test "a" "a")
+            "T.")
 
-    (ok (test (create-scanner "a") "a")
-        "with array."))
+        (is (test "b" "a")
+            nil
+            "NIL."))
 
-  (subtest "character"
-    (ok (test "a" "a")
-        "T.")
+      (subtest "sequence"
+        (ok (test "ab" "ab")
+            "T.")
 
-    (is (test "b" "a")
-        nil
-        "NIL."))
+        (is (test "ab" "aa")
+            nil
+            "NIL."))
 
-  (subtest "sequence"
-    (ok (test "ab" "ab")
-        "T.")
+      (subtest "alternative"
+        (ok (test "a|b" "b")
+            "T.")
 
-    (is (test "ab" "aa")
-        nil
-        "NIL."))
+        (is (test "a|b" "c")
+            nil
+            "NIL."))
 
-  (subtest "alternative"
-    (ok (test "a|b" "b")
-        "T.")
+      (subtest "kleene"
+        (ok (test "ba*" "b")
+            "T with Ypsilon.")
+        
+        (ok (test "a*" "aaa")
+            "T with repetition."))
 
-    (is (test "a|b" "c")
-        nil
-        "NIL."))
+      (subtest "group"
+        (ok (test "ab|cd" "ab")
+            "without grouping.")
 
-  (subtest "kleene"
-    (ok (test "ba*" "b")
-        "T with Ypsilon.")
-    
-    (ok (test "a*" "aaa")
-        "T with repetition."))
-
-  (subtest "group"
-    (ok (test "ab|cd" "ab")
-        "without grouping.")
-
-    (is (test "a(b|c)d" "ab")
-        nil
-        "with grouping.")))
+        (is (test "a(b|c)d" "ab")
+            nil
+            "with grouping.")))))
 
 (finalize)

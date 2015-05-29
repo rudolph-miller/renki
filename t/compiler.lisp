@@ -4,6 +4,7 @@
         :renki.ast
         :renki.parser
         :renki.vm
+        :renki.nfa
         :renki.compiler
         :prove))
 (in-package :renki-test.compiler)
@@ -105,5 +106,72 @@
     (is-type (nth 1 (compile-to-bytecode (parse-string "a")))
              '<match>
              "can append <match>.")))
+
+(subtest "compile-to-nfa"
+  (flet ((transition-equal (a b)
+           (and (eql (transition-from a)
+                     (transition-from b))
+                (eql (transition-to a)
+                     (transition-to b))
+                (eql (transition-char a)
+                     (transition-char b)))))
+    (macrolet ((is-transition (target expect &optional comment)
+                 `(is ,target
+                      ,expect
+                      ,@(when comment (list comment))
+                      :test #'transition-equal)))
+      (subtest "<symbol>"
+        (is-type (compile-to-nfa (parse-string "a"))
+                 '<nfa>
+                 "can compile.")
+
+        (let ((nfa (compile-to-nfa (parse-string "a"))))
+          (is (length (nfa-transitions nfa))
+              1
+              "can make-transition.")
+
+          (is-transition (car (nfa-transitions nfa))
+                         (make-transition (nfa-initial nfa) (nfa-accepting nfa) #\a)
+                         "can connect initial and accepting.")))
+
+      (subtest "<sequence>"
+        (is-type (compile-to-nfa (parse-string "aa"))
+                 '<nfa>
+                 "can compile.")
+
+        (let ((nfa (compile-to-nfa (parse-string "aa"))))
+          (is (length (nfa-transitions nfa))
+              3
+              "can make-transition.")))
+
+      (subtest "<alternative>"
+        (is-type (compile-to-nfa (parse-string "a|b"))
+                 '<nfa>
+                 "can compile.")
+
+        (let ((nfa (compile-to-nfa (parse-string "a|b"))))
+          (is (length (nfa-transitions nfa))
+              6
+              "can make-transition.")))
+
+      (subtest "<kleene>"
+        (is-type (compile-to-nfa (parse-string "a*"))
+                 '<nfa>
+                 "can compile.")
+
+        (let ((nfa (compile-to-nfa (parse-string "a*"))))
+          (is (length (nfa-transitions nfa))
+              5
+              "can make-transition.")))
+
+      (subtest "<group>"
+        (is-type (compile-to-nfa (parse-string "(a)"))
+                 '<nfa>
+                 "can compile.")
+
+        (let ((nfa (compile-to-nfa (parse-string "(a)"))))
+          (is (length (nfa-transitions nfa))
+              1
+              "can compile operand."))))))
 
 (finalize)

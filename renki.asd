@@ -24,6 +24,7 @@
                 ((:file "ast")
                  (:file "parser")
                  (:file "vm")
+                 (:file "nfa")
                  (:file "compiler")
                  (:file "renki"))))
   :description "Regexp Engine."
