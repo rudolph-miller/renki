@@ -4,7 +4,6 @@ sudo: yes
 env:
   matrix:
     - LISP=sbcl COVERALLS=true
-    - LISP=ccl
 
 install:
   # Install cl-travis.
@@ -14,6 +13,7 @@ before_script:
   - git clone https://github.com/fukamachi/cl-coveralls ~/lisp/cl-coveralls
 
 script:
-  - cl -l prove
-       -e '(or (prove:run :renki-test)
+  - cl -l prove -l cl-coveralls
+       -e '(or (coveralls:with-coveralls (:exclude (list "t"))
+                 (prove:run :renki-test))
                (uiop:quit -1))'
