@@ -144,7 +144,7 @@
                `(let ((thread (pop *queue*)))
                   (setq *pc* (thread-pc thread))
                   (setq *sp* (thread-sp thread))
-                  (go exec))))
+                  (sub))))
     (with-target-string string
       (let ((*pc* 0)
             (*sp* 0)
@@ -152,13 +152,13 @@
                        (list (make-array (length insts) :initial-contents insts))
                        (array insts)))
             (*queue* nil))
-        (tagbody
-         exec
-           (case (exec (current-inst))
-             (:match (return-from run-vm t))
-             (:fail
-              (if (null *queue*)
-                  (return-from run-vm nil)
-                  (next-thread)))
-             (:splitted (next-thread))
-             (t (go exec))))))))
+        (labels ((sub ()
+                   (case (exec (current-inst))
+                     (:match (return-from run-vm t))
+                     (:fail
+                      (if (null *queue*)
+                          (return-from run-vm nil)
+                          (next-thread)))
+                     (:splitted (next-thread))
+                     (t (sub)))))
+          (sub))))))
