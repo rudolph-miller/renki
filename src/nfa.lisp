@@ -4,17 +4,23 @@
   (:export :<nfa>
            :<state>
            :<transition>
+           :<dfa>
            :nfa-initial
            :nfa-accepting
            :nfa-transitions
            :transition-from
            :transition-to
            :transition-char
+           :dfa-initial
+           :dfa-acceptings
+           :dfa-transitions
            :make-nfa
            :make-state
            :make-transition
+           :make-dfa
            :expand-epsilon
-           :run-nfa))
+           :run-nfa
+           :nfa-dfa))
 (in-package :renki.nfa)
 
 (defclass <nfa> ()
@@ -42,6 +48,17 @@
          :type (or null character)
          :reader transition-char)))
 
+(defclass <dfa> ()
+  ((initial :initarg :initial
+            :type <state>
+            :reader dfa-initial)
+   (acceptings :initarg :acceptings
+               :type list
+               :reader dfa-acceptings)
+   (transitions :initarg :transitions
+                :type list
+                :reader dfa-transitions)))
+
 (defun make-nfa (initial accepting transitions)
   (make-instance '<nfa> :initial initial :accepting accepting :transitions transitions))
 
@@ -50,6 +67,9 @@
 
 (defun make-transition (from to &optional char)
   (make-instance '<transition> :from from :to to :char char))
+
+(defun make-dfa (initial acceptings transitions)
+  (make-instance '<dfa> :initial initial :acceptings acceptings :transitions transitions))
 
 (defun expand-epsilon (nfa)
   (let* ((initial (nfa-initial nfa))
@@ -74,12 +94,28 @@
                     result)))))
       (make-nfa initial accepting (append epsilons result)))))
 
-(defun run-nfa (nfa string)
-  (let ((accepting (nfa-accepting nfa))
-        (transitions (nfa-transitions nfa))
+(defgeneric run-nfa (nfa string))
+
+(defmethod run-nfa ((nfa <nfa>) string)
+  (run-nfa (list (nfa-initial nfa)
+                 (list (nfa-accepting nfa))
+                 (nfa-transitions nfa))
+           string))
+
+(defmethod run-nfa ((dfa <dfa>) string)
+  (run-nfa (list (dfa-initial dfa)
+                 (dfa-acceptings dfa)
+                 (dfa-transitions dfa))
+           string))
+
+(defmethod run-nfa ((list list) string)
+  (let ((acceptings (cadr list))
+        (transitions (caddr list))
         (index 0)
         (length (length string)))
-    (labels ((next-char ()
+    (labels ((accept-p (state)
+               (member state acceptings))
+             (next-char ()
                (let ((next (incf index)))
                  (when (< next length)
                    (elt string next))))
@@ -88,10 +124,40 @@
                  (when (eql state (transition-from transition))
                    (if (transition-char transition)
                        (when (eql (transition-char transition) char)
-                         (if (eql (transition-to transition) accepting)
+                         (if (accept-p (transition-to transition))
                              (return-from run-nfa t)
                              (sub (transition-to transition) (next-char))))
-                       (if (eql (transition-to transition) accepting)
+                       (if (accept-p (transition-to transition))
                            (return-from run-nfa t)
                            (sub (transition-to transition) char)))))))
-      (sub (nfa-initial nfa) (elt string 0)))))
+      (sub (car list) (elt string 0)))))
+
+(defun nfa-dfa (nfa)
+  (let ((nfa-initial (nfa-initial nfa))
+        (nfa-accepting (nfa-accepting nfa))
+        (nfa-transitions (nfa-transitions nfa))
+        (initial (make-state))
+        (acceptings nil)
+        (transitions nil))
+    (labels ((add-to-map (char state map)
+               (let ((found (assoc char map)))
+                 (if found
+                     (append (list (append found (list state))) (remove found map))
+                     (append (list (list char state)) map))))
+             (sub (state states)
+               (let ((map nil))
+                 (dolist (transition nfa-transitions)
+                   (when (member (transition-from transition) states)
+                     (setq map (add-to-map (transition-char transition) (transition-to transition) map))))
+                 (dolist (item map)
+                   (let ((to-state (make-state)))
+                     (dolist (s (cdr item))
+                       (dolist (trans nfa-transitions)
+                         (when (eql s (transition-to trans))
+                           (setf nfa-transitions (remove trans nfa-transitions)))))
+                     (sub to-state (cdr item))
+                     (when (member nfa-accepting (cdr item))
+                       (push to-state acceptings))
+                     (push (make-transition state to-state (car item)) transitions))))))
+      (sub initial (list nfa-initial))
+      (make-dfa initial acceptings transitions))))

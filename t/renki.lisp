@@ -26,7 +26,7 @@
                        (funcall (symbol-function ,fn) regex string)))
                 (subtest (format nil "~a" ,fn)
                   ,@body))))
-  (dolist (test (list 'test-vm 'test-nfa))
+  (dolist (test (list 'test-vm 'test-nfa 'test-dfa))
     (with-test test
       (subtest "character"
         (ok (test "a" "a")

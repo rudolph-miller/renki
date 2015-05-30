@@ -7,7 +7,8 @@
         :renki.nfa)
   (:export :create-scanner
            :test-vm
-           :test-nfa))
+           :test-nfa
+           :test-dfa))
 (in-package :renki)
 
 (defun create-scanner (regex)
@@ -31,4 +32,12 @@
               string))
 
   (:method ((regex <nfa>) string)
+    (run-nfa regex string)))
+
+(defgeneric test-dfa (regex string)
+  (:method ((regex string) string)
+    (test-dfa (nfa-dfa (expand-epsilon (compile-to-nfa (parse-string regex))))
+              string))
+
+  (:method ((regex <dfa>) string)
     (run-nfa regex string)))
