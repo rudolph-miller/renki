@@ -82,14 +82,6 @@
           2
           "can remove expand-epsilon."))))
 
-(subtest "run-nfa"
-  (ok (run-nfa (compile-to-nfa (parse-string "a")) "a")
-      "can return T.")
-
-  (is (run-nfa (compile-to-nfa (parse-string "b")) "a")
-      nil
-      "can return NIL."))
-
 (subtest "nfa-dfa"
   (is-type (nfa-dfa (expand-epsilon (compile-to-nfa (parse-string "a"))))
            '<dfa>
@@ -107,5 +99,22 @@
     (is (length (dfa-transitions dfa))
         2
         "can set transitions.")))
+
+(subtest "run-nfa"
+  (subtest "<nfa>"
+    (ok (run-nfa (compile-to-nfa (parse-string "a")) "a")
+        "can return T.")
+
+    (is (run-nfa (compile-to-nfa (parse-string "b")) "a")
+        nil
+        "can return NIL."))
+
+  (subtest "<dfa>"
+    (ok (run-nfa (nfa-dfa (compile-to-nfa (parse-string "a"))) "a")
+        "can return T.")
+
+    (is (run-nfa (nfa-dfa (compile-to-nfa (parse-string "b"))) "a")
+        nil
+        "can return NIL.")))
 
 (finalize)

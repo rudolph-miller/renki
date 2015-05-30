@@ -141,7 +141,7 @@
 
         (let ((nfa (compile-to-nfa (parse-string "aa"))))
           (is (length (nfa-transitions nfa))
-              3
+              2
               "can make-transition.")))
 
       (subtest "<alternative>"
