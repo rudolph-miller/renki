@@ -61,10 +61,13 @@
 
       (subtest "group"
         (ok (test "ab|cd" "ab")
-            "without grouping.")
+            "alternative without grouping.")
 
         (is (test "a(b|c)d" "ab")
             nil
-            "with grouping.")))))
+            "alternative with grouping.")
+
+        (ok (test "(a|b)*" "abab")
+            "kleene.")))))
 
 (finalize)
