@@ -19,21 +19,27 @@
 
 (defclass <nfa> ()
   ((initial :initarg :initial
+            :type <state>
             :reader nfa-initial)
    (accepting :initarg :accepting
+              :type <state>
               :reader nfa-accepting)
    (transitions :initarg :transitions
+                :type list
                 :reader nfa-transitions)))
 
 (defclass <state> () ())
 
 (defclass <transition> ()
   ((from :initarg :from
+         :type <state>
          :reader transition-from)
    (to :initarg :to
+       :type <state>
        :reader transition-to)
    (char :initarg :char
          :initform nil
+         :type (or null character)
          :reader transition-char)))
 
 (defun make-nfa (initial accepting transitions)
