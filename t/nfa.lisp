@@ -104,6 +104,18 @@
           (nfa-acceptings nfa)
           "can return the valid table."))))
 
+(subtest "set-transition-table"
+  (let ((nfa (compile-to-nfa (parse-string "a"))))
+    (is (nfa-transition-table nfa)
+        nil
+        "transition-table is nil at first.")
+
+    (set-transition-table nfa)
+
+    (is-type (nfa-transition-table nfa)
+             'hash-table
+             "can set transition-table.")))
+
 (subtest "get-availabel-states"
   (let* ((nfa (compile-to-nfa (parse-string "a")))
          (table (transition-table (nfa-transitions nfa))))

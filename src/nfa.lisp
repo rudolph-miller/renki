@@ -18,6 +18,7 @@
            :make-dfa
            :expand-epsilon
            :transition-table
+           :set-transition-table
            :get-availabel-states
            :nfa-dfa
            :run-nfa))
@@ -35,7 +36,7 @@
                 :reader nfa-transitions)
    (transition-table :initform nil
                      :type hash-table
-                     :reader nfa-transition-table)))
+                     :accessor nfa-transition-table)))
 
 (defclass <state> () ())
 
@@ -78,14 +79,15 @@
                    ((member (transition-from epsilon) initials)
                     (setq expanded t)
                     (push (transition-to epsilon) initials))
-                   (t
-                    (dolist (transition transitions)
-                      (when (eql (transition-to transition) (transition-from epsilon))
-                        (setq expanded t)
-                        (let ((additional (make-transition (transition-from transition) (transition-to epsilon) (transition-char transition))))
-                          (if (transition-char transition)
-                              (push additional transitions)
-                              (expand additional)))))))
+                   (t (dolist (transition transitions)
+                        (when (eql (transition-to transition) (transition-from epsilon))
+                          (setq expanded t)
+                          (let ((additional (make-transition (transition-from transition)
+                                                             (transition-to epsilon)
+                                                             (transition-char transition))))
+                            (if (transition-char transition)
+                                (push additional transitions)
+                                (expand additional)))))))
                  (if expanded
                      (setq transitions (remove epsilon transitions))
                      (error "Could not expand epsilon.")))))
@@ -96,8 +98,14 @@
 (defun transition-table (transitions)
   (let ((result (make-hash-table :test #'equal)))
     (dolist (transition transitions)
-      (push (transition-to transition) (gethash (cons (transition-from transition) (transition-char transition)) result)))
+      (let ((state (transition-to transition))
+            (key (cons (transition-from transition) (transition-char transition))))
+        (push state (gethash key result))))
     result))
+
+(defun set-transition-table (nfa)
+  (setf (nfa-transition-table nfa)
+        (transition-table (nfa-transitions nfa))))
 
 (defun get-availabel-states (state char table)
   (gethash (cons state char) table))
