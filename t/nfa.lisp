@@ -77,10 +77,16 @@
            (length (remove-if #'(lambda (transition)
                                   (transition-char transition))
                               (nfa-transitions nfa)))))
-    (let ((nfa (compile-to-nfa (parse-string "a|b"))))
-      (is (- (count-epsilon nfa) (count-epsilon (expand-epsilon nfa)))
-          2
-          "can remove expand-epsilon."))))
+    (let ((nfa (expand-epsilon (compile-to-nfa (parse-string "a|b")))))
+      (is (count-epsilon nfa)
+          0
+          "can expand all epsilons.")))
+
+  (let ((nfa (compile-to-nfa (parse-string "a|b"))))
+    (push (make-transition (make-state) (make-state)) (slot-value nfa 'renki.nfa::transitions))
+    (is-error (expand-epsilon nfa)
+              'simple-error
+              "can raise the error when something went wrong.")))
 
 (subtest "nfa-dfa"
   (is-type (nfa-dfa (expand-epsilon (compile-to-nfa (parse-string "a"))))
