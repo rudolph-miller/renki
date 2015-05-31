@@ -8,6 +8,7 @@
            :nfa-initials
            :nfa-acceptings
            :nfa-transitions
+           :nfa-transition-table
            :transition-from
            :transition-to
            :transition-char
@@ -17,6 +18,7 @@
            :make-dfa
            :expand-epsilon
            :transition-table
+           :get-availabel-states
            :nfa-dfa
            :run-nfa))
 (in-package :renki.nfa)
@@ -30,7 +32,10 @@
               :reader nfa-acceptings)
    (transitions :initarg :transitions
                 :type list
-                :reader nfa-transitions)))
+                :reader nfa-transitions)
+   (transition-table :initform nil
+                     :type hash-table
+                     :reader nfa-transition-table)))
 
 (defclass <state> () ())
 
@@ -140,7 +145,8 @@
 
 (defmethod run-nfa ((nfa <nfa>) string)
   (let ((acceptings (nfa-acceptings nfa))
-        (transition-table (transition-table (nfa-transitions nfa)))
+        (transition-table (or (nfa-transition-table nfa)
+                              (transition-table (nfa-transitions nfa))))
         (length (length string)))
     (labels ((accept-p (state)
                (member state acceptings))
@@ -160,7 +166,8 @@
 
 (defmethod run-nfa ((dfa <dfa>) string)
   (let* ((acceptings (nfa-acceptings dfa))
-         (transition-table (transition-table (nfa-transitions dfa)))
+         (transition-table (or (nfa-transition-table dfa)
+                               (transition-table (nfa-transitions dfa))))
          (length (length string)))
     (labels ((accept-p (state)
                (member state acceptings))

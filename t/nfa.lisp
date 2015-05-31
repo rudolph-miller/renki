@@ -88,6 +88,29 @@
               'simple-error
               "can raise the error when something went wrong.")))
 
+(subtest "transition-table"
+  (let* ((nfa (compile-to-nfa (parse-string "a")))
+         (transitions (nfa-transitions nfa)))
+    (is-type (transition-table transitions)
+             'hash-table
+             "can return a hash-table.")
+
+    (let ((table (transition-table transitions)))
+      (is (hash-table-count table)
+          1
+          "can return a valid size table.")
+
+      (is (gethash (cons (car (nfa-initials nfa)) #\a) table)
+          (nfa-acceptings nfa)
+          "can return the valid table."))))
+
+(subtest "get-availabel-states"
+  (let* ((nfa (compile-to-nfa (parse-string "a")))
+         (table (transition-table (nfa-transitions nfa))))
+    (is (get-availabel-states (car (nfa-initials nfa)) #\a table)
+        (nfa-acceptings nfa)
+        "can return the valid states.")))
+
 (subtest "nfa-dfa"
   (is-type (nfa-dfa (expand-epsilon (compile-to-nfa (parse-string "a"))))
            '<dfa>
