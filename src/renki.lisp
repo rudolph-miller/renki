@@ -58,3 +58,15 @@
 
   (:method ((regex <dfa>) string)
     (test-nfa regex string)))
+
+
+(defun bench (regex string &optional (times 1000))
+  (macrolet ((type-bench (type)
+               (let ((scanner (gensym "scanner")))
+                 `(let ((,scanner (create-scanner regex ,type)))
+                    (print (test ,scanner string))
+                    (time (loop repeat times
+                                do (test ,scanner string)))))))
+    (type-bench :vm)
+    (type-bench :nfa)
+    (type-bench :dfa))) 
