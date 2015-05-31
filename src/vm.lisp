@@ -162,3 +162,7 @@
                      (:splitted (next-thread exec-loop))
                      (t (exec-loop)))))
           (exec-loop))))))
+
+(defgeneric print-instructions (insts)
+  (:method ((insts list)))
+  (:method ((insts array))))

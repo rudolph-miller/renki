@@ -131,7 +131,7 @@
               "can make-transition.")
 
           (is-transition (car (nfa-transitions nfa))
-                         (make-transition (nfa-initial nfa) (nfa-accepting nfa) #\a)
+                         (make-transition (car (nfa-initials nfa)) (car (nfa-acceptings nfa)) #\a)
                          "can connect initial and accepting.")))
 
       (subtest "<sequence>"

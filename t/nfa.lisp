@@ -10,17 +10,17 @@
 (plan nil)
 
 (subtest "<nfa>"
-  (is-type (make-nfa (make-state) (make-state) (list (make-transition (make-state) (make-state))))
+  (is-type (make-nfa (list (make-state)) (list (make-state)) (list (make-transition (make-state) (make-state))))
            '<nfa>
            "can make-nfa.")
 
-  (let ((nfa (make-nfa (make-state) (make-state) (list (make-transition (make-state) (make-state))))))
-    (is-type (nfa-initial nfa)
-             '<state>
+  (let ((nfa (make-nfa (list (make-state)) (list (make-state)) (list (make-transition (make-state) (make-state))))))
+    (is-type (nfa-initials nfa)
+             'list
              "can set initial.")
 
-    (is-type (nfa-accepting nfa)
-             '<state>
+    (is-type (nfa-acceptings nfa)
+             'list
              "can set accepting.")
 
     (is-type (nfa-transitions nfa)
