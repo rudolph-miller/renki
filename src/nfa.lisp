@@ -105,7 +105,8 @@
 
 (defun set-transition-table (nfa)
   (setf (nfa-transition-table nfa)
-        (transition-table (nfa-transitions nfa))))
+        (transition-table (nfa-transitions nfa)))
+  nfa)
 
 (defun get-availabel-states (state char table)
   (gethash (cons state char) table))
