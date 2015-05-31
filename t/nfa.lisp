@@ -55,20 +55,20 @@
         "can set char.")))
 
 (subtest "<dfa>"
-  (is-type (make-dfa (make-state) (list (make-state)) (list (make-transition (make-state) (make-state))))
+  (is-type (make-dfa (list (make-state)) (list (make-state)) (list (make-transition (make-state) (make-state))))
            '<dfa>
            "can make-dfa.")
 
-  (let ((dfa (make-dfa (make-state) (list (make-state)) (list (make-transition (make-state) (make-state))))))
-    (is-type (dfa-initial dfa)
-             '<state>
+  (let ((dfa (make-dfa (list (make-state)) (list (make-state)) (list (make-transition (make-state) (make-state))))))
+    (is-type (nfa-initials dfa)
+             'list
              "can set initial.")
 
-    (is-type (dfa-acceptings dfa)
+    (is-type (nfa-acceptings dfa)
              'list
              "can set accepting.")
 
-    (is-type (dfa-transitions dfa)
+    (is-type (nfa-transitions dfa)
              'list
              "can set transitions.")))
 
@@ -88,15 +88,15 @@
            "can convert <nfa> to <dfa>.")
 
   (let ((dfa (nfa-dfa (expand-epsilon (compile-to-nfa (parse-string "aa"))))))
-    (is-type (dfa-initial dfa)
-             '<state>
+    (is-type (nfa-initials dfa)
+             'list
              "can set initial.")
 
-    (is-type (dfa-acceptings dfa)
+    (is-type (nfa-acceptings dfa)
              'list
              "can set acceptings.")
 
-    (is (length (dfa-transitions dfa))
+    (is (length (nfa-transitions dfa))
         2
         "can set transitions.")))
 

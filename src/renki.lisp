@@ -36,8 +36,5 @@
 
 (defgeneric test-dfa (regex string)
   (:method ((regex string) string)
-    (test-dfa (nfa-dfa (expand-epsilon (compile-to-nfa (parse-string regex))))
-              string))
-
-  (:method ((regex <dfa>) string)
-    (run-nfa regex string)))
+    (test-nfa (nfa-dfa (expand-epsilon (compile-to-nfa (parse-string regex))))
+              string)))

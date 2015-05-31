@@ -11,9 +11,6 @@
            :transition-from
            :transition-to
            :transition-char
-           :dfa-initial
-           :dfa-acceptings
-           :dfa-transitions
            :make-nfa
            :make-state
            :make-transition
@@ -49,16 +46,7 @@
          :type (or null character)
          :reader transition-char)))
 
-(defclass <dfa> ()
-  ((initial :initarg :initial
-            :type <state>
-            :reader dfa-initial)
-   (acceptings :initarg :acceptings
-               :type list
-               :reader dfa-acceptings)
-   (transitions :initarg :transitions
-                :type list
-                :reader dfa-transitions)))
+(defclass <dfa> (<nfa>) ())
 
 (defun make-nfa (initials acceptings transitions)
   (make-instance '<nfa> :initials initials :acceptings acceptings :transitions transitions))
@@ -69,8 +57,8 @@
 (defun make-transition (from to &optional char)
   (make-instance '<transition> :from from :to to :char char))
 
-(defun make-dfa (initial acceptings transitions)
-  (make-instance '<dfa> :initial initial :acceptings acceptings :transitions transitions))
+(defun make-dfa (initials acceptings transitions)
+  (make-instance '<dfa> :initials initials :acceptings acceptings :transitions transitions))
 
 (defun expand-epsilon (nfa)
   (let* ((initials (nfa-initials nfa))
@@ -135,7 +123,7 @@
                      (push (make-transition state to-state (car item)) transitions))))))
       (let ((initial (register-states (list nfa-initial))))
         (convert initial (list nfa-initial))
-        (make-dfa initial acceptings transitions)))))
+        (make-dfa (list initial) acceptings transitions)))))
 
 (defgeneric run-nfa (nfa string))
 
@@ -165,8 +153,8 @@
         (exec initial (elt string 0))))))
 
 (defmethod run-nfa ((dfa <dfa>) string)
-  (let ((acceptings (dfa-acceptings dfa))
-        (transitions (dfa-transitions dfa))
+  (let ((acceptings (nfa-acceptings dfa))
+        (transitions (nfa-transitions dfa))
         (index 0)
         (length (length string)))
     (labels ((accept-p (state)
@@ -186,4 +174,5 @@
                        (if (accept-p (transition-to transition))
                            (return-from run-nfa t)
                            (exec (transition-to transition) char)))))))
-      (exec (dfa-initial dfa) (elt string 0)))))
+      (dolist (initial (nfa-initials dfa))
+        (exec initial (elt string 0))))))
