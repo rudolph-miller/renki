@@ -9,7 +9,8 @@
            :test
            :test-vm
            :test-nfa
-           :test-dfa))
+           :test-dfa
+           :bench))
 (in-package :renki)
 
 (defun create-scanner (regex &optional (type :vm))
@@ -60,13 +61,22 @@
     (test-nfa regex string)))
 
 
-(defun bench (regex string &optional (times 1000))
-  (macrolet ((type-bench (type)
-               (let ((scanner (gensym "scanner")))
-                 `(let ((,scanner (create-scanner regex ,type)))
-                    (print (test ,scanner string))
-                    (time (loop repeat times
-                                do (test ,scanner string)))))))
-    (type-bench :vm)
-    (type-bench :nfa)
-    (type-bench :dfa))) 
+(defun bench (regex string &optional (times 10000))
+  (let ((counter 0)
+        (types (list :vm :nfa :dfa)))
+    (macrolet ((type-bench (type)
+                 (let ((scanner (gensym "scanner"))
+                       (block (gensym "block")))
+                   `(block ,block
+                      (let ((,scanner (create-scanner regex ,type)))
+                        (handler-case (test ,scanner string)
+                          (error ()
+                            (format t "Benchmark of :~(~a~) failed.~%" ,type)
+                            (return-from ,block)))
+                        (progn (format t "Benchmark of :~(~a~)~%" ,type)
+                               (incf counter)
+                               (time (loop repeat times
+                                           do (test ,scanner string)))))))))
+      (dolist (type types)
+        (type-bench type))
+      (when (= counter (length types)) t))))

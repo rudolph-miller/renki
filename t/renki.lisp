@@ -136,4 +136,8 @@
         (ok (test "(a|b)*" "abab")
             "kleene.")))))
 
+(subtest "bench"
+  (ok (bench "ab(c|d)*e" "abcdcdcdcde")
+      "can return T."))
+
 (finalize)
