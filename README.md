@@ -6,6 +6,10 @@
 
 ## Installation
 
+```Lisp
+(ql:quickload :renki)
+```
+
 ## Author
 
 * Rudolph-Miller

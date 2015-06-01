@@ -11,6 +11,7 @@
 (defsystem renki-test
   :author "Rudolph-Miller"
   :license "MIT"
+  :description "Tests of Renki."
   :depends-on (:renki
                :prove)
   :components ((:module "t"
