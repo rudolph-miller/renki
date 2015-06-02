@@ -81,6 +81,14 @@
              '<empty>
              "can returt the inst *pc* indicates.")))
 
+(subtest "defexec"
+  (is (gethash (find-class '<empty>) *exec-table*)
+      '(let ((renki.vm::obj (current-inst)))
+        (declare (ignore renki.vm::obj))
+        (incf *pc*)
+        t)
+      "can setf *exec-table*."))
+
 (subtest "exec"
   (subtest "<empty>"
     (let ((*pc* 0))

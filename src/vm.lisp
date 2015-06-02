@@ -27,6 +27,7 @@
            :current-char
            :current-inst
            :make-thread
+           :*exec-table*
            :exec
            :with-target-string
            :run-vm))
@@ -105,16 +106,26 @@
 
 (defgeneric exec (obj))
 
-(defmethod exec ((obj <empty>))
+(defparameter *exec-table* (make-hash-table :test #'equal))
+
+(defmacro defexec (((obj class)) &body body)
+  `(progn
+     (setf (gethash (find-class ',class) *exec-table*)
+           `(let ((,',obj (current-inst)))
+              ,@',body))
+     (defmethod exec ((,obj ,class))
+     ,@body)))
+
+(defexec ((obj <empty>))
   (declare (ignore obj))
   (incf *pc*)
   t)
 
-(defmethod exec ((obj <match>))
+(defexec ((obj <match>))
   (declare (ignore obj))
   :match)
 
-(defmethod exec ((obj <char>))
+(defexec ((obj <char>))
   (if (and (< *sp* *target-length*)
            (char= (inst-char obj)
                   (current-char)))
@@ -123,11 +134,11 @@
              t)
       :fail))
 
-(defmethod exec ((obj <jmp>))
+(defexec ((obj <jmp>))
   (setq *pc* (inst-to obj))
   t)
 
-(defmethod exec ((obj <split>))
+(defexec ((obj <split>))
   (let ((thread1 (make-thread :pc (inst-to1 obj) :sp *sp*))
         (thread2 (make-thread :pc (inst-to2 obj) :sp *sp*)))
     (push thread2 *queue*)
