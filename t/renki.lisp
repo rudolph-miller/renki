@@ -4,7 +4,9 @@
         :renki
         :renki.vm
         :renki.nfa
-        :prove))
+        :prove)
+  (:shadowing-import-from :renki.vm
+                          :fail))
 (in-package :renki-test)
 
 (plan nil)

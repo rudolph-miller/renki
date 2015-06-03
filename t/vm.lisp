@@ -2,14 +2,21 @@
 (defpackage renki-test.vm
   (:use :cl
         :renki.vm
-        :prove))
+        :prove)
+  (:shadowing-import-from :renki.vm
+                          :fail))
 (in-package :renki-test.vm)
 
 (plan nil)
 
 (subtest "definst"
-  (is *inst-readers*
-      '(inst-table inst-to2 inst-to1 inst-to inst-char inst-line)
+  (definst test ()
+    ((test :reader inst-test)))
+
+  (ok (find-class 'test)
+      "can defclass.")
+
+  (ok (member 'inst-test *inst-readers*)
       "can add reader in *inst-readers*."))
 
 (subtest "<empty>"
@@ -97,6 +104,73 @@
     (is-type (current-inst)
              '<empty>
              "can returt the inst *pc* indicates.")))
+
+
+(subtest "next-line"
+  (let ((*pc* 0))
+    (next-line *pc*)
+
+    (is *pc*
+        1
+        "can incf *pc*.")))
+
+(subtest "goto-line"
+  (let ((*pc* 0))
+    (goto-line 2)
+
+    (is *pc*
+        2
+        "can setq *pc*.")))
+
+(subtest "push-thread"
+  (let ((*queue* nil)
+        (*sp* 0))
+    (push-thread 1)
+
+    (is (length *queue*)
+        1
+        "can push to *queue*.")
+
+    (is (car *queue*)
+        (make-thread :pc 1 :sp 0)
+        "can push thread to *queue*."
+        :test #'equalp)))
+
+(subtest "table-goto"
+  (let ((table (make-hash-table)))
+    (setf (gethash #\a table) 1)
+    (setf (gethash #\b table) 3)
+
+    (with-target-string "abc"
+      (table-goto table)
+      
+      (is *sp*
+          1
+          "can incf *sp*.")
+
+      (is *pc*
+          1
+          "can setq *pc*.")
+
+      (table-goto table)
+
+      (is *pc*
+          3
+          "can dispatch with character.")
+
+      (is (table-goto table)
+          :fail
+          "can return fail with character not on table."))))
+
+(subtest "match"
+  (is (match)
+      :match
+      "can be expanded to :match."))
+
+(subtest "fail"
+  (is (fail)
+      :fail
+      "can be expanded to :fail."))
 
 (subtest "expand-inst"
   (let* ((form '((inst-char char))))

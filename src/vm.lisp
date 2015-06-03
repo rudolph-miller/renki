@@ -5,6 +5,7 @@
                 :ensure-cons)
   (:export :*current-line*
            :*inst-readers*
+           :definst
            :<inst>
            :<empty>
            :<match>
@@ -32,6 +33,12 @@
            :*queue*
            :current-char
            :current-inst
+           :next-line
+           :goto-line
+           :push-thread
+           :table-goto
+           :match
+           :fail
            :make-thread
            :*exec-table*
            :expand-inst
