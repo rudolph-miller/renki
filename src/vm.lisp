@@ -42,6 +42,7 @@
            :make-thread
            :*exec-table*
            :expand-inst
+           :defexec
            :exec
            :with-target-string
            :compile-insts

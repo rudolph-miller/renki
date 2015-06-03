@@ -180,10 +180,24 @@
         :test #'equalp)))
 
 (subtest "defexec"
-  (let ((empty (make-empty-inst)))
-    (is (funcall (gethash (find-class '<empty>) *exec-table*) empty)
-        `((renki.vm::next-line ,(inst-line empty)))
-        "can setf *exec-table*.")))
+  (defexec ((obj test))
+    (declare (ignore obj))
+    (match))
+
+  (ok (find-method #'exec nil (list 'test))
+      "can defmethod.")
+
+  (ok (gethash (find-class 'test) *exec-table*)
+      "can register to *exec-table*.")
+
+  (let ((fn (gethash (find-class 'test) *exec-table*)))
+    (is-type fn
+             'function
+             "can register function to *exec-table*.")
+
+    (is (funcall fn (make-instance 'test))
+        (list '(match))
+        "can funcall registered function.")))
 
 (subtest "with-target-string"
   (with-target-string "ab"
