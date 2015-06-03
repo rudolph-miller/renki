@@ -7,6 +7,11 @@
 
 (plan nil)
 
+(subtest "definst"
+  (is *inst-readers*
+      '(inst-table inst-to2 inst-to1 inst-to inst-char inst-line)
+      "can add reader in *inst-readers*."))
+
 (subtest "<empty>"
   (is-type (make-empty-inst)
            '<empty>
@@ -60,6 +65,18 @@
         2
         "can setf to2.")))
 
+(subtest "<cond>"
+  (let ((table (make-hash-table)))
+    (setf (gethash #\a table) 1)
+    (is-type (make-cond-inst table)
+             '<cond>
+             "can make-cond-inst.")
+
+    (let ((cond (make-cond-inst table)))
+      (is-type (inst-table cond)
+               'hash-table
+               "can setf table."))))
+
 (subtest "*current-line*"
   (let ((first (make-empty-inst))
         (second (make-empty-inst)))
@@ -81,13 +98,44 @@
              '<empty>
              "can returt the inst *pc* indicates.")))
 
+(subtest "expand-inst"
+  (let* ((form '((inst-char char))))
+    (is (expand-inst form)
+        (list (sb-impl::unquote '(inst-char char)))
+        "can unquote."
+        :test #'equalp)))
+
 (subtest "defexec"
-  (is (gethash (find-class '<empty>) *exec-table*)
-      '(let ((renki.vm::obj (current-inst)))
-        (declare (ignore renki.vm::obj))
-        (incf *pc*)
-        t)
-      "can setf *exec-table*."))
+  (let ((empty (make-empty-inst)))
+    (is (funcall (gethash (find-class '<empty>) *exec-table*) empty)
+        `((renki.vm::next-line ,(inst-line empty)))
+        "can setf *exec-table*.")))
+
+(subtest "with-target-string"
+  (with-target-string "ab"
+    (is *target*
+        "ab"
+        "can let *target*.")
+
+    (is *target-length*
+        2
+        "can let *target-length*.")
+
+    (is *sp*
+        0
+        "can let *sp*.")))
+
+(subtest "compile-insts"
+  (let* ((*current-line* 0)
+         (insts (list (make-char-inst #\a) (make-match-inst)))
+         (fn (compile-insts insts)))
+    (is-type fn
+             'function
+             "can return function.")
+
+    (is (list (funcall fn "a") (funcall fn "b"))
+        (list t nil)
+        "can compile insts.")))
 
 (subtest "exec"
   (subtest "<empty>"
@@ -152,7 +200,33 @@
       (is (cadr *queue*)
           (make-thread :pc 3 :sp 0)
           "can save to2 and *sp*."
-          :test #'equalp))))
+          :test #'equalp)))
+
+  (subtest "<cond>"
+    (let ((table (make-hash-table)))
+      (setf (gethash #\a table) 1)
+      (setf (gethash #\b table) 3)
+      (let ((cond (make-cond-inst table)))
+        (with-target-string "abc"
+          (exec cond)
+
+          (is *sp*
+              1
+              "can incf *sp*.")
+
+          (is *pc*
+              1
+              "can setq *pc*.")
+
+          (exec cond)
+
+          (is *pc*
+              3
+              "can dispatch with character.")
+
+          (is (exec cond)
+              :fail
+              "can return fail with character not on table."))))))
 
 (subtest "run-vm"
   (subtest ":match"

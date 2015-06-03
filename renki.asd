@@ -18,7 +18,9 @@
   :version "0.1"
   :author "Rudolph-Miller"
   :license "MIT"
-  :depends-on (:esrap)
+  :depends-on (:alexandria
+               :esrap
+               :closer-mop)
   :components ((:module "src"
                 :components
                 ((:file "ast")
