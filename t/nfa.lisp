@@ -146,7 +146,7 @@
     (ok (run-nfa (compile-to-nfa (parse-string "a")) "a")
         "can return T.")
 
-    (is (run-nfa (compile-to-nfa (parse-string "b")) "a")
+    (is (run-nfa (compile-to-nfa (parse-string "a*b")) "a")
         nil
         "can return NIL."))
 
@@ -154,7 +154,7 @@
     (ok (run-nfa (nfa-dfa (compile-to-nfa (parse-string "a"))) "a")
         "can return T.")
 
-    (is (run-nfa (nfa-dfa (compile-to-nfa (parse-string "b"))) "a")
+    (is (run-nfa (nfa-dfa (compile-to-nfa (parse-string "a*b"))) "a")
         nil
         "can return NIL.")))
 
