@@ -8,6 +8,10 @@ env:
 install:
   - curl -L https://raw.githubusercontent.com/snmsts/roswell/release/scripts/travis-install.sh | sh
 
+before_script:
+  - git clone https://github.com/fukamachi/cl-coveralls ~/lisp/cl-coveralls
+
+
 script:
   - ros -s prove -s cl-coveralls
         -e '(or (coveralls:with-coveralls (:exclude (list "t"))
